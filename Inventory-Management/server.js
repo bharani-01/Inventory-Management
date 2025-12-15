@@ -2,7 +2,10 @@ const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config();
+// Load environment variables
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
+}
 
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -19,7 +22,15 @@ const analyticsRoutes = require('./routes/analytics');
 const shopApiRoutes = require('./routes/shop-api');
 const ecommercePortalRoutes = require('./routes/ecommerce-portal');
 const recipientRoutes = require('./routes/recipients');
-connectDB();
+
+// Initialize database connection
+connectDB().catch(err => {
+    console.error('Database connection failed:', err);
+    // Don't exit in serverless - allow retry on next request
+    if (process.env.VERCEL !== '1') {
+        process.exit(1);
+    }
+});
 
 // Only initialize scheduled jobs if not in serverless environment
 if (process.env.VERCEL !== '1') {
