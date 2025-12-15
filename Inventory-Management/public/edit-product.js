@@ -3,7 +3,14 @@ const API_URL = (() => {
     if (typeof window !== 'undefined' && window.location) {
         const protocol = window.location.protocol;
         const hostname = window.location.hostname;
-        return `${protocol}//${hostname}:5000/api`;
+        const port = window.location.port;
+        
+        // In production, use same host as frontend
+        // In development (localhost), use port 5000
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return `${protocol}//${hostname}:5000/api`;
+        }
+        return `${protocol}//${hostname}${port ? ':' + port : ''}/api`;
     }
     return 'http://localhost:5000/api';
 })();
@@ -12,7 +19,12 @@ const PUBLIC_APP_BASE_URL = (() => {
     if (typeof window !== 'undefined' && window.location) {
         const protocol = window.location.protocol;
         const hostname = window.location.hostname;
-        return `${protocol}//${hostname}:5000`;
+        const port = window.location.port;
+        
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return `${protocol}//${hostname}:5000`;
+        }
+        return `${protocol}//${hostname}${port ? ':' + port : ''}`;
     }
     return 'http://localhost:5000';
 })();

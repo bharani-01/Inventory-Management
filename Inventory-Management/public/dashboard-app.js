@@ -1,11 +1,17 @@
 // Modern Inventory Dashboard Application
 const API_URL = (() => {
-    // Auto-detect API URL based on current host for mobile/network access
+    // Auto-detect API URL - works for both local development and production
     if (typeof window !== 'undefined' && window.location) {
         const protocol = window.location.protocol || 'http:';
         const hostname = window.location.hostname || 'localhost';
-        // Use same host as frontend, just different port for API
-        return `${protocol}//${hostname}:5000/api`;
+        const port = window.location.port;
+        
+        // In production, use same host as frontend (no separate port)
+        // In development (localhost), use port 5000
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return `${protocol}//${hostname}:5000/api`;
+        }
+        return `${protocol}//${hostname}${port ? ':' + port : ''}/api`;
     }
     return 'http://localhost:5000/api';
 })();

@@ -23,6 +23,7 @@ alertService.initScheduledJobs();
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const app = express();
 
 // ===== IP ADDRESS AND REQUEST LOGGING MIDDLEWARE =====
@@ -136,7 +137,16 @@ app.use((req, res, next) => {
 // Increase payload size limit for image uploads (base64 can be large)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors());
+
+// CORS Configuration - allows all origins in development, configurable in production
+const corsOptions = {
+    origin: NODE_ENV === 'production' 
+        ? process.env.ALLOWED_ORIGINS?.split(',') || '*'
+        : '*',
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 
 // Serve static frontend files without auto-index so custom route can handle '/'
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
