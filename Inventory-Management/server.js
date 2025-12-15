@@ -20,7 +20,11 @@ const shopApiRoutes = require('./routes/shop-api');
 const ecommercePortalRoutes = require('./routes/ecommerce-portal');
 const recipientRoutes = require('./routes/recipients');
 connectDB();
-alertService.initScheduledJobs();
+
+// Only initialize scheduled jobs if not in serverless environment
+if (process.env.VERCEL !== '1') {
+    alertService.initScheduledJobs();
+}
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -169,7 +173,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// Bind to HOST so the server is reachable from external networks when needed
-app.listen(PORT, HOST, () =>
-    console.log(`Server running on http://${HOST}:${PORT}`)
-);
+// Export for Vercel serverless
+module.exports = app;
+
+// Only start server if not in serverless environment (Vercel)
+if (process.env.VERCEL !== '1') {
+    app.listen(PORT, HOST, () =>
+        console.log(`Server running on http://${HOST}:${PORT}`)
+    );
+}
