@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const ActivityLog = require('../models/ActivityLog');
 const auth = require('../middleware/auth');
@@ -172,6 +173,56 @@ router.post('/logout', auth(), async (req, res) => {
     } catch (err) {
         console.error('Logout error:', err);
         res.status(500).json({ message: err.message });
+    }
+});
+
+// Health check endpoint with DB status and ping
+router.get('/health', async (req, res) => {
+    const startTime = Date.now();
+    try {
+        // Check MongoDB connection
+        const dbState = mongoose.connection.readyState;
+        const dbStatus = {
+            0: 'disconnected',
+            1: 'connected',
+            2: 'connecting',
+            3: 'disconnecting'
+        };
+
+        // Ping database
+        let dbPing = null;
+        if (dbState === 1) {
+            const pingStart = Date.now();
+            await mongoose.connection.db.admin().ping();
+            dbPing = Date.now() - pingStart;
+        }
+
+        const responseTime = Date.now() - startTime;
+
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            database: {
+                status: dbStatus[dbState] || 'unknown',
+                connected: dbState === 1,
+                ping: dbPing
+            },
+            server: {
+                uptime: process.uptime(),
+                responseTime: responseTime
+            }
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            database: {
+                status: 'error',
+                connected: false,
+                ping: null
+            },
+            error: error.message
+        });
     }
 });
 

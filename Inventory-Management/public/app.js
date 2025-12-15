@@ -57,6 +57,7 @@ const refreshOverviewBtn = document.getElementById('refreshOverviewBtn');
 const refreshAlertsBtn = document.getElementById('refreshAlertsBtn');
 const lowStockList = document.getElementById('lowStockList');
 const lowStockEmptyState = document.getElementById('lowStockEmptyState');
+const dbStatusElement = document.getElementById('dbStatus');
 
 // Inventory DOM references
 const itemSearchInput = document.getElementById('itemSearch');
@@ -1911,4 +1912,41 @@ function clearMessage(target) {
 		clearTimeout(messageTimers.get(element));
 		messageTimers.delete(element);
 	}
+}
+
+// Database Status Check
+async function checkDatabaseStatus() {
+	if (!dbStatusElement) return;
+
+	try {
+		const response = await fetch(`${API_URL}/health`);
+		const data = await response.json();
+
+		const statusText = dbStatusElement.querySelector('.status-text');
+		
+		// Remove all status classes
+		dbStatusElement.classList.remove('connected', 'disconnected', 'connecting');
+		
+		if (data.database === 'connected') {
+			dbStatusElement.classList.add('connected');
+			statusText.textContent = 'Database Connected';
+		} else if (data.database === 'connecting') {
+			dbStatusElement.classList.add('connecting');
+			statusText.textContent = 'Database Connecting...';
+		} else {
+			dbStatusElement.classList.add('disconnected');
+			statusText.textContent = 'Database Disconnected';
+		}
+	} catch (error) {
+		const statusText = dbStatusElement.querySelector('.status-text');
+		dbStatusElement.classList.remove('connected', 'disconnected', 'connecting');
+		dbStatusElement.classList.add('disconnected');
+		statusText.textContent = 'Server Unreachable';
+	}
+}
+
+// Check database status on page load and every 10 seconds
+if (dbStatusElement) {
+	checkDatabaseStatus();
+	setInterval(checkDatabaseStatus, 10000);
 }

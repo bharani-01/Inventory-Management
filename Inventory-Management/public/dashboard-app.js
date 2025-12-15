@@ -254,6 +254,45 @@ function showLogin() {
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
+    
+    // Check DB status on login page
+    checkDatabaseStatus();
+    // Check DB status every 5 seconds
+    setInterval(checkDatabaseStatus, 5000);
+}
+
+// Check database connection status
+async function checkDatabaseStatus() {
+    const statusElement = document.getElementById('dbStatus');
+    if (!statusElement) return;
+
+    try {
+        const response = await fetch(`${API_URL}/auth/health`);
+        const data = await response.json();
+
+        if (data.database.connected) {
+            statusElement.className = 'db-status connected';
+            statusElement.innerHTML = `
+                <span class="status-dot"></span>
+                <span class="status-text">Database Connected</span>
+                <span class="status-ping">${data.database.ping}ms</span>
+            `;
+        } else {
+            statusElement.className = 'db-status disconnected';
+            statusElement.innerHTML = `
+                <span class="status-dot"></span>
+                <span class="status-text">Database Disconnected</span>
+                <span class="status-ping">--</span>
+            `;
+        }
+    } catch (error) {
+        statusElement.className = 'db-status disconnected';
+        statusElement.innerHTML = `
+            <span class="status-dot"></span>
+            <span class="status-text">Connection Error</span>
+            <span class="status-ping">--</span>
+        `;
+    }
 }
 
 async function handleLogin(event) {

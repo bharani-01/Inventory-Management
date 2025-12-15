@@ -7,6 +7,7 @@ dotenv.config();
 const cors = require('cors');
 const connectDB = require('./config/db');
 const alertService = require('./services/alertService');
+const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
 const itemRoutes = require('./routes/items');
 const supplierRoutes = require('./routes/suppliers');
@@ -151,6 +152,7 @@ app.use(cors(corsOptions));
 // Serve static frontend files without auto-index so custom route can handle '/'
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
+app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/suppliers', supplierRoutes);
